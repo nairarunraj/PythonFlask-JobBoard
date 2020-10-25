@@ -3,9 +3,7 @@ import sqlite3
 from flask import Flask, g
 from flask import render_template
 
-
 PATH = "db/jobs.sqlite"
-
 
 app = Flask(__name__)
 
@@ -35,15 +33,19 @@ def execute_sql(sql, values=(), commit=False, single=False):
     return results
 
 
+@app.route("/jobs")
+@app.route("/")
+def jobs():
+    jobs = execute_sql(
+        'SELECT job.id, job.title, job.description, job.salary, employer.id as employer_id, employer.name as '
+        'employer_name FROM job JOIN employer ON employer.id = job.employer_id')
+
+    return render_template('index.html', jobs=jobs)
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     connection = getattr(g, '_connection', None)
 
     if connection is not None:
         connection.close()
-
-
-@app.route("/jobs")
-@app.route("/")
-def jobs():
-    return render_template('index.html')
